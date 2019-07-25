@@ -1,0 +1,100 @@
+- hosts: test1
+  become: yes
+  become_method: su
+  vars:
+    NODEJS_VERSION: "10.x"
+    ansible_distribution_release: "streth" #trusty
+  tasks:
+ 
+   - name: Install Nginx
+     apt: 
+       name: nginx
+     register: nginx_out
+
+   - name: Debug Nginx
+     debug: 
+       var: nginx_out.stdout
+
+   - name: Check Python3.7
+     shell: python3.7 --version
+     ignore_errors: True
+     register: py_check
+
+   - name: Check Python3.7 result
+     debug:
+       var: py_check.stdout
+     when: py_check.stdout
+
+   - name: Check Python3.7 result
+     debug:
+       msg: "Python3.7 not install, installing..."
+     when: py_check.stderr
+
+   - name: Python3.7 update apt
+       
+     apt:
+       update_cache: yes
+     when: py_check.stderr
+     
+   - name: Python3.7 install apt requarimens
+
+     apt:
+       name: "{{ packages }}"
+     vars:
+       packages:
+         - build-essential 
+         - zlib1g-dev 
+         - libncurses5-dev 
+         - libgdbm-dev 
+         - libnss3-dev 
+         - libssl-dev 
+         - libreadline-dev 
+         - libffi-dev 
+     when: py_check.stderr
+
+   - name: Python3.7 Create tmp directory
+     file:
+       path: /opt/python37
+       state: directory
+     when: py_check.stderr
+
+   - name: Python 3.7 Unarchive a file that needs to be downloaded
+     unarchive:
+       src: https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz
+       dest: /opt/python37
+       remote_src: yes
+     when: py_check.stderr
+
+   - name: Python 3.7 compile configure
+     shell: cd /opt/python37/Python-3.7.3 && ./configure --enable-optimizations && make -j 2 && make altinstall
+     when: py_check.stderr
+
+   - name: Node 10 check install
+     shell: node -v
+     ignore_errors: True
+     register: node_check
+
+   - name: Node version
+     debug: var=node_check.stdout
+     when: node_check.stdout
+
+   - name: Install Curl
+     apt:
+       name: curl
+     when: node_check.stderr
+
+   - name: Add node repo
+     shell: curl -sL https://deb.nodesource.com/setup_{{ NODEJS_VERSION }} | bash -
+     when: node_check.stderr
+
+   - name: apt update
+     apt:
+       update_cache: yes
+     when: node_check.stderr
+
+   - name: Install the nodejs
+     apt:
+       name: nodejs
+       state: present
+     when: node_check.stderr
+

@@ -1,0 +1,36 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+
+   - name: check python3.7
+     shell: python3.7 --version
+     register: ps 
+
+   - debug: var=ps.stdout
+   - debug: var=ps.stderr
+
+   - debug: msg="check err"
+     
+   - name: bad check python3.8
+     shell: python3.8 --version
+     ignore_errors: True
+     register: ps1 
+
+   - debug: var=ps1.stdout
+   - debug: var=ps1.stderr
+   
+   - name: Testing When
+     debug: msg="when true"
+     when: True
+
+   - name: bad Testing When
+     debug: msg="when false"
+     when: False
+
+   - name: Python3.8 install
+     debug: msg="installing--------->"
+     when: ps1.stderr
+
+   - name: Python3.7 install
+     debug: msg="installing--------->"
+     when: ps.stderr

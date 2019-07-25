@@ -1,0 +1,27 @@
+- hosts: all
+  become: yes
+  become_method: su
+  vars:
+    PROJECT_NAME: "test_project"
+   
+  tasks:
+    
+    - name: Create new user
+      user:
+        name: "{{ PROJECT_NAME }}"
+#        group: "{{ PROJECT_NAME }}"
+        shell: /bin/bash
+#       append: yes
+
+    - name: Create file of new user name
+      file:
+        path: /home/{{ PROJECT_NAME }}/some_directory
+        state: directory
+#        mode: '0755'
+#        become: yes
+#        become_user: "{{ PROJECT_NAME }}"
+        owner: "{{ PROJECT_NAME }}"
+        group: "{{ PROJECT_NAME }}"
+#    - name: Change owner 
+    - name: test syntax
+
